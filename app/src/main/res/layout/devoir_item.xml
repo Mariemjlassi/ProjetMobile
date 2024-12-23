@@ -1,0 +1,74 @@
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/typedevoirTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Type de devoir"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/descriptionTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Description"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/typedevoirTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/ponderationTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Pondération"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/descriptionTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/baremeTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Barème"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/ponderationTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/dateLimiteTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Date limite"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/baremeTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <TextView
+            android:id="@+id/statutTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Statut"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/dateLimiteTextView"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
