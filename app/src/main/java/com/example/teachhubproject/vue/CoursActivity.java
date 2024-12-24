@@ -1,7 +1,6 @@
 package com.example.teachhubproject.vue;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -11,121 +10,94 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.teachhubproject.R;
+import com.example.teachhubproject.controller.CourController;
 import com.example.teachhubproject.model.Cour;
-import com.example.teachhubproject.service.CourService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 public class CoursActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
-    private CourAdapter adapter;
-    private List<Cour> coursList;
+    private RecyclerView recyclerView; // RecyclerView pour afficher la liste des cours
+    private CourAdapter adapter; // Adaptateur pour lier les données à la RecyclerView
+    private List<Cour> coursList; // Liste des cours récupérés
+    private CourController courController; // Instance du Controller pour la gestion des cours
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cours);
 
-        // Toolbar configuration
+        // Configuration de la barre d'outils
         androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Champ et bouton
+        // Initialisation du champ de saisie et du bouton pour rejoindre un cours
         EditText codeInput = findViewById(R.id.codeInput);
         Button joinButton = findViewById(R.id.joinButton);
 
+        // Initialisation du Controller
+        courController = new CourController(this);
+
+        // Action lorsque l'utilisateur clique sur le bouton "Rejoindre"
         joinButton.setOnClickListener(v -> {
-            String code = codeInput.getText().toString().trim();
+            String code = codeInput.getText().toString().trim(); // Récupérer le code saisi
 
             if (!code.isEmpty()) {
-                // Appel au backend pour rejoindre le cours
-                joinCourseByCode(code);
+                // Si un code est saisi, appeler la méthode pour rejoindre le cours
+                Long etudiantId = getIntent().getLongExtra("etudiantId", 0L);
+                courController.joinCourseByCode(code, etudiantId, new CourController.CourServiceCallback() {
+                    @Override
+                    public void onSuccess(List<Cour> cours) {
+                        fetchCours(etudiantId);
+                    }
+
+                    @Override
+                    public void onFailure(String errorMessage) {
+                        Toast.makeText(CoursActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                    }
+                });
             } else {
+                // Sinon, afficher un message demandant un code valide
                 Toast.makeText(CoursActivity.this, "Veuillez entrer un code valide", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // Récupérer les cours existants
+        // Configuration de la RecyclerView pour afficher la liste des cours
         recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this)); // Disposition en liste verticale
 
+        // Initialisation de la liste des cours et de l'adaptateur
         coursList = new ArrayList<>();
         adapter = new CourAdapter(coursList, coursId -> {
-            // Action lors du clic sur un cours
+            // Action à exécuter lorsqu'un cours est sélectionné (clic sur un élément)
             Toast.makeText(this, "Cours sélectionné : " + coursId, Toast.LENGTH_SHORT).show();
         });
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(adapter); // Lier l'adaptateur à la RecyclerView
 
+        // Récupérer l'ID de l'étudiant passé dans l'intent
         Long etudiantId = getIntent().getLongExtra("etudiantId", 0L);
         if (etudiantId != 0L) {
+            // Si un ID est présent, récupérer les cours associés à cet étudiant
             fetchCours(etudiantId);
         }
     }
 
-    private void joinCourseByCode(String code) {
-        CourService apiService = RetrofitClient.getClient().create(CourService.class);
-
-        // Récupérer l'ID de l'étudiant depuis l'intent
-        Long etudiantId = getIntent().getLongExtra("etudiantId", 0L);
-
-        // Appel à l'API pour rejoindre le cours avec le code
-        Call<Void> call = apiService.inviteStudentByCode(code, etudiantId);
-        call.enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(CoursActivity.this, "Rejoint avec succès", Toast.LENGTH_SHORT).show();
-                    // Actualiser la liste des cours
-                    fetchCours(etudiantId);
-                } else {
-                    Toast.makeText(CoursActivity.this, "Erreur: " + response.message(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(CoursActivity.this, "Échec: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-
-
-
-
-
-
-
+    // Méthode pour récupérer la liste des cours associés à un étudiant
     private void fetchCours(Long etudiantId) {
-        CourService apiService = RetrofitClient.getClient().create(CourService.class);
-        Call<List<Cour>> call = apiService.getCoursByEtudiant(etudiantId);
-
-        call.enqueue(new Callback<List<Cour>>() {
+        courController.fetchCours(etudiantId, new CourController.CourServiceCallback() {
             @Override
-            public void onResponse(Call<List<Cour>> call, Response<List<Cour>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    coursList.clear();
-                    coursList.addAll(response.body());
-                    adapter.notifyDataSetChanged();
-                    Log.d("CoursActivity", "Cours list updated with " + coursList.size() + " items.");
-                } else {
-                    Toast.makeText(CoursActivity.this, "Erreur lors de la récupération des cours", Toast.LENGTH_SHORT).show();
-                    Log.e("CoursActivity", "Erreur lors de la récupération des cours: " + response.errorBody());
-                }
+            public void onSuccess(List<Cour> cours) {
+                // Mise à jour de la liste des cours
+                coursList.clear();
+                coursList.addAll(cours);
+                adapter.notifyDataSetChanged(); // Notifier l'adaptateur des changements
             }
 
             @Override
-            public void onFailure(Call<List<Cour>> call, Throwable t) {
-                Toast.makeText(CoursActivity.this, "Erreur : " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                Log.e("CoursActivity", "Erreur : " + t.getMessage());
+            public void onFailure(String errorMessage) {
+                Toast.makeText(CoursActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }
-
 }
